@@ -35,7 +35,7 @@ router.get('/edit/:id', ensureAuthenticated, async (req, res) => {
     if (!event || event.user.toString() !== req.user.id) {
       return res.status(404).send('Event not found');
     }
-    res.render('editEvent', { event });
+    res.render('editEvent', { event , moment});
   } catch (error) {
     console.error(error);
     res.status(500).send('Server Error');
@@ -54,6 +54,22 @@ router.post('/edit/:id', ensureAuthenticated, async (req, res) => {
     event.description = description;
     event.date = moment(date).toDate();
     await event.save();
+    res.redirect('/');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server Error');
+  }
+});
+
+// Delete Event
+router.get('/delete/:id', ensureAuthenticated, async (req, res) => {
+  try{
+    const event = await Event.findById(req.params.id);
+    console.log("event found: ", event);
+    if (!event || event.user.toString() !== req.user.id) {
+      return res.status(404).send('Event not found or unauthorized');
+    }
+    await Event.findByIdAndDelete(req.params.id);
     res.redirect('/');
   } catch (error) {
     console.error(error);
