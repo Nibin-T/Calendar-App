@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>Calendar</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <div class="top-bar">
@@ -14,15 +15,55 @@
     <input type="month" id="month" name="month" value="<%= selectedMonth %>">
     <button type="submit">Filter</button>
   </form>
-  <ul>
-    <% events.forEach(event => { %>
-      <li>
-        <strong><%= event.title %></strong> - <%= moment(event.date).format('MMMM DD, YYYY HH:mm') %><br>
-        Description: <%= event.description %><br>
-        <a href="/events/edit/<%= event._id %>">Edit</a>
-        <a href="/events/delete/<%= event._id %>" onclick="return confirm('Are you sure you want to delete this event?')">Delete</a>
-      </li>
-    <% }); %>
-  </ul>
+
+  <div class="calendar-container">
+    <div class="calendar-header">
+      <% moment.monthsShort().forEach(month => { %>
+        <div class="calendar-day-header"><%= month %></div>
+      <% }); %>
+    </div>
+    <div class="calendar-grid">
+      <%
+        const daysInMonth = moment(selectedMonth || moment()).daysInMonth();
+        const firstDayOfMonth = moment(selectedMonth || moment()).startOf('month').day();
+        const currentDay = moment().date();
+        const currentMonth = moment().month();
+        const currentYear = moment().year();
+
+        let dayCounter = 1;
+        for (let i = 0; i < 42; i++) {
+          const isCurrentDay = (dayCounter === currentDay && moment(selectedMonth || moment()).month() === currentMonth && moment(selectedMonth || moment()).year() === currentYear);
+          const hasEvent = events.some(event => moment(event.date).date() === dayCounter && moment(event.date).month() === moment(selectedMonth || moment()).month() && moment(event.date).year() === moment(selectedMonth || moment()).year());
+          if (i >= firstDayOfMonth && dayCounter <= daysInMonth) {
+      %>
+        <div class="calendar-day <%= hasEvent ? 'event-day' : '' %> <%= isCurrentDay ? 'current-day' : '' %>">
+          <span class="day-number"><%= dayCounter %></span>
+          <%
+            events.forEach(event => {
+              if (moment(event.date).date() === dayCounter && moment(event.date).month() === moment(selectedMonth || moment()).month() && moment(event.date).year() === moment(selectedMonth || moment()).year()) {
+          %>
+            <div class="event-item">
+              <strong><%= event.title %></strong><br>
+              <%= moment(event.date).format('HH:mm') %><br>
+              <%= event.description %><br>
+              <a href="/events/edit/<%= event._id %>">Edit</a>
+              <a href="/events/delete/<%= event._id %>" onclick="return confirm('Are you sure?')">Delete</a>
+            </div>
+          <%
+              }
+            });
+          %>
+        </div>
+      <%
+            dayCounter++;
+          } else {
+      %>
+        <div class="calendar-day empty"></div>
+      <%
+          }
+        }
+      %>
+    </div>
+  </div>
 </body>
 </html>

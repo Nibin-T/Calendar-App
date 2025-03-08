@@ -23,10 +23,34 @@ body {
   background-color: #0056b3;
 }
 
+.calendar-container {
+  width: 80%;
+  margin: 20px auto;
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  text-align: center;
+  font-weight: bold;
+  padding: 5px 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-gap: 5px;
+}
+
 .calendar-day {
   border: 1px solid #ccc;
   padding: 10px;
   min-height: 100px;
+  position: relative;
+}
+
+.calendar-day.empty {
+  border: none;
 }
 
 .day-number {
@@ -35,13 +59,17 @@ body {
   margin-bottom: 5px;
 }
 
-.events {
-  list-style: none;
-  padding: 0;
+.event-day {
+  background-color: #e0f7fa;
 }
 
-.events li {
+.current-day {
+  background-color: #fff3cd;
+}
+
+.event-item {
   margin-bottom: 5px;
+  font-size: 0.9em;
 }
 
 form {
@@ -51,6 +79,10 @@ form {
 form label {
   display: block;
   margin-bottom: 5px;
+}
+
+form input[type="month"] {
+  width: 100px;
 }
 
 form input, form textarea {
@@ -72,15 +104,4 @@ form button {
 
 form button:hover {
   background-color: #218838;
-}
-
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 5px;
 }
