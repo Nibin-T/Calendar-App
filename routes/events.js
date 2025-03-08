@@ -5,37 +5,36 @@ const { ensureAuthenticated } = require('../middleware/auth');
 const Event = require('../models/event');
 const moment = require('moment');
 
-router.post('/', ensureAuthenticated, async (req, res) => {
+// Create Event Page
+router.get('/create', ensureAuthenticated, (req, res) => {
+  res.render('createEvent');
+});
+
+// Create Event (POST)
+router.post('/create', ensureAuthenticated, async (req, res) => {
   try {
-    const { title, description, startDate, endDate } = req.body;
+    const { title, description, date } = req.body;
     const newEvent = new Event({
       title,
       description,
-      startDate,
-      endDate,
+      date: moment(date).toDate(),
       user: req.user.id,
     });
     await newEvent.save();
     res.redirect('/');
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
     res.status(500).send('Server Error');
   }
 });
 
-router.get('/delete/:id', ensureAuthenticated, async (req, res) => {
-  try {
-    await Event.findByIdAndDelete(req.params.id);
-    res.redirect('/');
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server Error');
-  }
-});
-
+// Edit Event Page
 router.get('/edit/:id', ensureAuthenticated, async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
+    if (!event || event.user.toString() !== req.user.id) {
+      return res.status(404).send('Event not found');
+    }
     res.render('editEvent', { event });
   } catch (error) {
     console.error(error);
@@ -43,36 +42,22 @@ router.get('/edit/:id', ensureAuthenticated, async (req, res) => {
   }
 });
 
+// Edit Event (POST)
 router.post('/edit/:id', ensureAuthenticated, async (req, res) => {
   try {
-    await Event.findByIdAndUpdate(req.params.id, req.body);
+    const event = await Event.findById(req.params.id);
+    if (!event || event.user.toString() !== req.user.id) {
+      return res.status(404).send('Event not found');
+    }
+    const { title, description, date } = req.body;
+    event.title = title;
+    event.description = description;
+    event.date = moment(date).toDate();
+    await event.save();
     res.redirect('/');
   } catch (error) {
     console.error(error);
     res.status(500).send('Server Error');
-  }
-});
-
-router.get('/month/:year/:month', ensureAuthenticated, async (req, res) => {
-  try {
-    const year = parseInt(req.params.year);
-    const month = parseInt(req.params.month) - 1; // Months are 0-indexed
-
-    const firstDayOfMonth = moment([year, month, 1]);
-    const lastDayOfMonth = moment(firstDayOfMonth).endOf('month');
-
-    const events = await Event.find({
-      user: req.user.id,
-      startDate: {
-        $gte: firstDayOfMonth.clone().startOf('day').toDate(),
-        $lte: lastDayOfMonth.clone().endOf('day').toDate(),
-      },
-    });
-
-    res.json(events);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server Error' });
   }
 });
 

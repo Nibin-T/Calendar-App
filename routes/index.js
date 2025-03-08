@@ -6,34 +6,23 @@ const Event = require('../models/event');
 const moment = require('moment');
 
 router.get('/', ensureAuthenticated, async (req, res) => {
-  const currentDate = moment();
-  const year = currentDate.year();
-  const month = currentDate.month();
+  try {
+    let selectedMonth = req.query.month || '';
+    let query = { user: req.user.id };
 
-  const firstDayOfMonth = moment([year, month, 1]);
-  const lastDayOfMonth = moment(firstDayOfMonth).endOf('month');
+    if (selectedMonth) {
+      const startOfMonth = moment(selectedMonth, 'YYYY-MM').startOf('month').toDate();
+      const endOfMonth = moment(selectedMonth, 'YYYY-MM').endOf('month').toDate();
+      query.date = { $gte: startOfMonth, $lte: endOfMonth };
+    }
 
-  const daysInMonth = lastDayOfMonth.date();
-  const firstDayOfWeek = firstDayOfMonth.day();
+    const events = await Event.find(query).sort({ date: 1 });
 
-  const days = [];
-  for (let i = 0; i < firstDayOfWeek; i++) {
-    days.push({ date: '', events: [] });
+    res.render('calendar', { events, selectedMonth, moment });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server Error');
   }
-
-  for (let i = 1; i <= daysInMonth; i++) {
-    const date = moment([year, month, i]);
-    const events = await Event.find({
-      user: req.user.id,
-      startDate: {
-        $gte: date.clone().startOf('day').toDate(),
-        $lte: date.clone().endOf('day').toDate(),
-      },
-    });
-    days.push({ date: i, events: events });
-  }
-  //Added this line to send the month name.
-  res.render('calendar', { days, currentMonth: moment.months(month), currentYear: year });
 });
 
 module.exports = router;

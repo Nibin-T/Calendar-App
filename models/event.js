@@ -9,22 +9,14 @@ const EventSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  startDate: {
+  date: { // Combined date and time
     type: Date,
     required: true,
   },
-  endDate: {
-    type: Date,
-    required: true,
-  },
-  user: { // Link to the user who created the event
+  user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-  },
-  createdAt: { // Add a timestamp for when the event was created
-    type: Date,
-    default: Date.now,
   },
 });
 
